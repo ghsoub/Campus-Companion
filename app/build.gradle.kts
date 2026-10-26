@@ -39,6 +39,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.okhttp)
     implementation(libs.retrofit)
     implementation(libs.retrofit.serialization)
     implementation(libs.kotlinx.serialization.json)
