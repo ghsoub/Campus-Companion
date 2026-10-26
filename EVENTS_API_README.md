@@ -41,7 +41,19 @@ Then run on an emulator/device:
 
 ## Validation status
 
-The live endpoint was read successfully and its JSON contract inspected. Source/diff and configuration checks were performed. Android build and automated tests could NOT run in the editing environment: the Gradle distribution download failed with `Network is unreachable`, and an Android SDK was not installed. These checks must pass locally before submission. No APK is supplied and no claim of a successful build is made.
+Verified on GitHub Actions for source commit `251e22f91092fdf54ba16b5357c7d5caa77c1ac1`:
+
+- Debug APK build: passed.
+- JVM unit tests: passed.
+- Android lint: passed.
+- Android API 35 emulator instrumentation tests: passed.
+- Recovery exercise: slow Loading -> offline Error -> Retry -> Content -> Empty -> invalid-data Error -> Retry -> Content: passed.
+- Live endpoint: read successfully; all 50 returned records matched required fields, timestamps, date ranges, and unique IDs at verification time.
+
+Verification run and downloadable APK/test reports:
+https://github.com/ghsoub/Campus-Companion/actions/runs/40367099286
+
+The emulator recovery exercise uses controlled API responses and a simulated connection exception. It does not toggle the emulator's Wi-Fi or modify the shared class API. The repository's tests separately exercise real Retrofit HTTP responses using MockWebServer. Future server changes and different devices can still affect behavior.
 
 ## Submission
 
