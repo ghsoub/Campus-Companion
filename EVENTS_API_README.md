@@ -41,19 +41,29 @@ Then run on an emulator/device:
 
 ## Validation status
 
-Verified on GitHub Actions for source commit `251e22f91092fdf54ba16b5357c7d5caa77c1ac1`:
+Verified on GitHub Actions for source commit `080a528e4e0950ff927f8bbf295a226dfb55442b`:
 
 - Debug APK build: passed.
 - JVM unit tests: passed.
 - Android lint: passed.
-- Android API 35 emulator instrumentation tests: passed.
+- Android API 35 emulator instrumentation tests: all 7 passed, with zero failures, errors, or skipped tests.
+- Safe diagnostic logging: implemented and tested; error types are logged without response bodies or exception messages.
 - Recovery exercise: slow Loading -> offline Error -> Retry -> Content -> Empty -> invalid-data Error -> Retry -> Content: passed.
 - Live endpoint: read successfully; all 50 returned records matched required fields, timestamps, date ranges, and unique IDs at verification time.
 
 Verification run and downloadable APK/test reports:
-https://github.com/ghsoub/Campus-Companion/actions/runs/40367099286
+https://github.com/ghsoub/Campus-Companion/actions/runs/40370914686
 
-The emulator recovery exercise uses controlled API responses and a simulated connection exception. It does not toggle the emulator's Wi-Fi or modify the shared class API. The repository's tests separately exercise real Retrofit HTTP responses using MockWebServer. Future server changes and different devices can still affect behavior.
+The controlled recovery exercise remains as a deterministic test of empty and invalid responses. A separate `LiveEventsDeviceTest` now launches the real MainActivity and its production Retrofit client. It successfully loaded the live event feed, enabled the emulator's airplane mode and disabled Wi-Fi/mobile data, observed a real UnknownHostException and the error/Retry screen, restored connectivity, pressed Retry, and displayed live events again.
+
+Screenshots and logcat evidence are included in the verification run's artifact under `evidence/`:
+
+- `01-live-content.png`: production app displaying live event cards.
+- `02-real-offline-error.png`: airplane mode on, real network failure, Retry displayed.
+- `03-live-retry-recovery.png`: connectivity restored and live content returned.
+- `logcat.txt`: safe diagnostics and each completed device exercise step.
+
+This was executed on an Android emulator, not a physical phone. The shared API was only read; its records were not modified. Future server changes and different devices can still affect behavior.
 
 ## Submission
 
@@ -61,7 +71,10 @@ The completed work is published on `feature/charbel-events-api` in your own repo
 
 https://github.com/ghsoub/Campus-Companion/tree/feature/charbel-events-api
 
-The teacher's repository and your existing branches are unchanged.
+Pull request for teacher review:
+https://github.com/toufic-fy/Campus-Companion/pull/26
+
+The teacher reviews and merges the pull request.
 
 If using the source ZIP instead of the Git bundle, copy the changed files into your own clone and run the teacher's branch/add/commit/push commands. The ZIP does not include `.git`.
 
