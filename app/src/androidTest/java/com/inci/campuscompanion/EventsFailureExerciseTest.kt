@@ -1,6 +1,9 @@
 package com.inci.campuscompanion
 
 import android.util.Log
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.assertIsDisplayed
@@ -65,7 +68,9 @@ class EventsFailureExerciseTest {
         }
         compose.setContent {
             val state by vm.state.collectAsState()
-            CampusCompanionTheme(darkTheme = false) { EventsScreen(state, vm::refresh) }
+            CampusCompanionTheme(darkTheme = false) {
+                Scaffold { padding -> EventsScreen(state, vm::refresh, Modifier.padding(padding)) }
+            }
         }
         fun awaitResult() {
             compose.waitUntil(timeoutMillis = 40_000) { vm.state.value !is EventsUiState.Loading }
@@ -83,7 +88,7 @@ class EventsFailureExerciseTest {
             shell("svc wifi disable")
             shell("svc data disable")
             Thread.sleep(3_000)
-            compose.onNodeWithText("Refresh", useUnmergedTree = true).performClick()
+            compose.onNodeWithText("Refresh").performClick()
             awaitResult()
             assertTrue("Expected offline Error, got ${vm.state.value}", vm.state.value is EventsUiState.Error)
             compose.onNodeWithText("Retry").assertIsDisplayed()
@@ -96,7 +101,7 @@ class EventsFailureExerciseTest {
             capture("01-reconnected", "Connectivity restored; Retry -> Content")
 
             baseUrl = "https://6ad70838f71f154ac4879fac.mockapi.io/api/v1/missing/"
-            compose.onNodeWithText("Refresh", useUnmergedTree = true).performClick()
+            compose.onNodeWithText("Refresh").performClick()
             awaitResult()
             assertTrue(vm.state.value is EventsUiState.Error)
             compose.onNodeWithText("Retry").assertIsDisplayed()
@@ -112,7 +117,7 @@ class EventsFailureExerciseTest {
 
             emptyResponse = false
             baseUrl = "https://6ad70838f71f154ac4879fac.mockapi.io/api/v1/missing/"
-            compose.onNodeWithText("Refresh", useUnmergedTree = true).performClick()
+            compose.onNodeWithText("Refresh").performClick()
             awaitResult()
             assertTrue(vm.state.value is EventsUiState.Error)
             baseUrl = CampusApiFactory.BASE_URL
