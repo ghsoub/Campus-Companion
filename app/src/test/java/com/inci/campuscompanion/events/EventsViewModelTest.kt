@@ -59,4 +59,26 @@ class EventsViewModelTest {
         advanceUntilIdle()
         assertEquals(EventsUiState.Empty, viewModel.uiState.value)
     }
+
+    @Test fun invalidDataIsLoggedWithoutLeakingTheResponse() = runTest(dispatcher) {
+        val messages = mutableListOf<String>()
+        val logger = java.util.logging.Logger.getAnonymousLogger().apply {
+            useParentHandlers = false
+            addHandler(object : java.util.logging.Handler() {
+                override fun publish(record: java.util.logging.LogRecord) { messages.add(record.message) }
+                override fun flush() { }
+                override fun close() { }
+            })
+        }
+        val source = object : EventsSource {
+            override suspend fun getEvents(): List<CampusEvent> =
+                throw kotlinx.serialization.SerializationException("private server response")
+        }
+        val viewModel = EventsViewModel(source, logger)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value is EventsUiState.Error)
+        assertEquals(listOf("Events request failed: SerializationException"), messages)
+        assertFalse(messages.joinToString().contains("private server response"))
+    }
+
 }

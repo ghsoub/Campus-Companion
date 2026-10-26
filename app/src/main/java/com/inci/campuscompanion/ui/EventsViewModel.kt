@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.logging.Logger
 
 sealed interface EventsUiState {
     data object Loading : EventsUiState
@@ -22,7 +23,10 @@ sealed interface EventsUiState {
     data class Error(val message: String) : EventsUiState
 }
 
-class EventsViewModel(private val repository: EventsSource) : ViewModel() {
+class EventsViewModel(
+    private val repository: EventsSource,
+    private val logger: Logger = Logger.getLogger("CampusEvents")
+) : ViewModel() {
     private val _uiState = MutableStateFlow<EventsUiState>(EventsUiState.Loading)
     val uiState = _uiState.asStateFlow()
     private var loadJob: Job? = null
@@ -39,6 +43,8 @@ class EventsViewModel(private val repository: EventsSource) : ViewModel() {
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
+                // Log the failure type, never response bodies, URLs, or personal data.
+                logger.warning("Events request failed: ${error.javaClass.simpleName}")
                 _uiState.value = EventsUiState.Error(errorMessage(error))
             }
         }

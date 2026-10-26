@@ -33,7 +33,7 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: bash gradlew --no-daemon --console=plain connectedDebugAndroidTest
+          script: bash .github/scripts/run-live-device-checks.sh
       - name: Upload APK and verification reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -43,3 +43,4 @@ jobs:
             app/build/outputs/apk/debug/*.apk
             app/build/reports/
             app/build/outputs/androidTest-results/
+            evidence/
