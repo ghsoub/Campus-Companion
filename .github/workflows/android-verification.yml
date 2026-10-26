@@ -19,13 +19,31 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
       - name: Install required Android SDK
         run: sdkmanager 'platforms;android-37' 'build-tools;36.0.0'
       - name: Build and run unit tests
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --console=plain testDebugUnitTest assembleDebug
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run failure exercise on an Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            mkdir -p evidence
+            if ./gradlew --no-daemon --console=plain connectedDebugAndroidTest; then test_result=0; else test_result=$?; fi
+            adb pull /sdcard/Download/campus-events-evidence evidence/ || true
+            adb logcat -d -s CampusExercise:I CampusEvents:W '*:S' > evidence/logcat.txt
+            exit $test_result
       - name: Upload test evidence and debug APK
         if: always()
         uses: actions/upload-artifact@v4
@@ -35,5 +53,8 @@ jobs:
             app/build/reports/tests/testDebugUnitTest/
             app/build/test-results/testDebugUnitTest/
             app/build/outputs/apk/debug/*.apk
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+            evidence/
           if-no-files-found: warn
 

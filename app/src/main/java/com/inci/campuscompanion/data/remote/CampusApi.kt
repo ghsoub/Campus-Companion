@@ -16,9 +16,12 @@ interface CampusApi {
 object CampusApiFactory {
     const val BASE_URL = "https://6ad70838f71f154ac4879fac.mockapi.io/api/v1/events/"
 
-    fun create(baseUrl: String = BASE_URL): CampusApi = Retrofit.Builder()
+    fun create(
+        baseUrl: String = BASE_URL,
+        client: OkHttpClient = OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build()
+    ): CampusApi = Retrofit.Builder()
         .baseUrl(baseUrl)
-        .client(OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build())
+        .client(client)
         .addConverterFactory(Json { ignoreUnknownKeys = true }
             .asConverterFactory("application/json".toMediaType()))
         .build()
